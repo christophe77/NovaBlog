@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// For PostgreSQL, uncomment and adjust:
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  passwordHash String
+  role        String   @default("ADMIN") // ADMIN, EDITOR, AUTHOR
+  isActive    Boolean  @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  passwordResetTokens PasswordResetToken[]
+
+  @@map("users")
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  content     String   // Text content
+  excerpt     String?  // Text excerpt
+  image       String?  // Image URL or path
+  language    String   @default("fr")
+  status      String   @default("DRAFT") // DRAFT, PUBLISHED, SCHEDULED
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // SEO
+  seoTitle       String?
+  seoDescription String? // Text description
+  keywords       String? // JSON array as string
+
+  // AI metadata
+  source   String @default("AI_GENERATED") // AI_GENERATED, MANUAL
+  aiPrompt String? // Text prompt
+  aiModel  String?
+
+  @@index([status, publishedAt])
+  @@index([slug])
+  @@index([language])
+  @@map("articles")
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   // JSON string (Text in SQLite)
+  category  String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([category])
+  @@map("settings")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model ScheduledTask {
+  id          String   @id @default(cuid())
+  type        String   // e.g., "article_generation"
+  status      String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
+  startedAt   DateTime?
+  completedAt DateTime?
+  error       String?  // Text error message
+  metadata    String?  // JSON metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type, status])
+  @@index([createdAt])
+  @@map("scheduled_tasks")
+}
+
