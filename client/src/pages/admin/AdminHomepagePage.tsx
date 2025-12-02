@@ -31,6 +31,7 @@ interface HomepageConfig {
     enabled: boolean;
     slides: CarouselSlide[];
   };
+  sectionsTitle?: string;
   sections: HomepageSection[];
   contact: ContactBlock;
   seo: {
@@ -45,6 +46,7 @@ export default function AdminHomepagePage() {
       enabled: false,
       slides: [],
     },
+    sectionsTitle: '',
     sections: [],
     contact: {
       enabled: false,
@@ -79,6 +81,7 @@ export default function AdminHomepagePage() {
           enabled: false,
           slides: [],
         },
+        sectionsTitle: '',
         sections: [],
         seo: {
           title: '',
@@ -387,6 +390,25 @@ export default function AdminHomepagePage() {
 
       <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: 'var(--spacing-lg)' }}>Sections de contenu</h2>
+
+        <div className="form-group" style={{ marginBottom: 'var(--spacing-md)' }}>
+          <label className="form-label">Titre de la zone de sections</label>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Titre affiché avant les sections (optionnel)"
+            value={config.sectionsTitle || ''}
+            onChange={(e) =>
+              setConfig({
+                ...config,
+                sectionsTitle: e.target.value,
+              })
+            }
+          />
+          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: 'var(--spacing-xs)' }}>
+            Ce titre sera affiché avant la liste des sections sur la page d'accueil.
+          </p>
+        </div>
 
         {config.sections.map((section) => (
           <div

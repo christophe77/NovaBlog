@@ -137,9 +137,9 @@ export class EmailService {
     await transporter.sendMail({
       from: config.from,
       to: config.from,
-      subject: 'Test email - InnovLayer',
-      html: '<p>Ceci est un email de test depuis InnovLayer.</p>',
-      text: 'Ceci est un email de test depuis InnovLayer.',
+      subject: 'Test email - NovaBlog',
+      html: '<p>Ceci est un email de test depuis NovaBlog.</p>',
+      text: 'Ceci est un email de test depuis NovaBlog.',
     });
   }
 }

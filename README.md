@@ -1,60 +1,65 @@
-# InnovLayer - Plateforme de Micro-blogging avec IA
+# NovaBlog - AI-Powered Micro-blogging Platform
 
-Plateforme de micro-blogging qui publie automatiquement des articles générés par IA (Mistral) tous les 3 jours, avec une interface d'administration complète et un système de configuration avancé.
+A micro-blogging platform that automatically publishes AI-generated articles (using Mistral) at configurable intervals, with a comprehensive admin interface and advanced configuration system.
 
-## 🎯 Fonctionnalités
+## 🎯 Features
 
-- **Génération automatique d'articles** : Publication automatique d'articles générés par IA tous les 3 jours
-- **Configuration complète** : Thème, contenu, SEO, langue, informations entreprise
-- **Interface admin** : Gestion des articles, paramètres, génération manuelle
-- **Thème configurable** : Design tokens via CSS variables, personnalisable depuis l'admin
-- **Multi-langue** : Support de plusieurs langues avec génération IA dans la langue configurée
-- **SEO optimisé** : Mots-clés globaux et par article, meta tags configurables
-- **Authentification sécurisée** : Login/logout avec récupération de mot de passe
-- **Wizard de setup** : Configuration initiale guidée en plusieurs étapes
+- **Automatic article generation**: Configurable automatic publication of AI-generated articles (e.g., 2 articles every 3 days)
+- **Complete configuration**: Theme, content, SEO, language, company information
+- **Admin interface**: Article management, settings, manual generation, homepage configuration
+- **Configurable theme**: Design tokens via CSS variables, customizable from admin
+- **Multi-language**: Support for multiple languages with AI generation in the configured language
+- **SEO optimized**: Global and per-article keywords, configurable meta tags
+- **Secure authentication**: Login/logout with password recovery
+- **Setup wizard**: Guided initial configuration in multiple steps
+- **Homepage customization**: Hero carousel, content sections with accordion, contact form
+- **Lighthouse integration**: Performance, accessibility, best practices, and SEO scores in admin dashboard
+- **Image upload**: Support for logo and article images with automatic optimization
 
-## 🛠️ Stack Technique
+## 🛠️ Tech Stack
 
-- **Backend** : Node.js + Express (TypeScript)
-- **Frontend** : React (TypeScript) avec SSR via Express
-- **Base de données** : SQLite (dev) ou PostgreSQL (prod) via Prisma ORM
-- **IA** : Mistral API (intégration backend uniquement)
-- **Styling** : CSS avec design tokens (CSS variables)
-- **Build** : Vite pour le frontend
+- **Backend**: Node.js + Express (TypeScript)
+- **Frontend**: React (TypeScript) with SSR via Express
+- **Database**: SQLite (dev) or PostgreSQL (prod) via Prisma ORM
+- **AI**: Mistral API (backend only)
+- **Styling**: CSS with design tokens (CSS variables)
+- **Build**: Vite for frontend
+- **Performance**: Lighthouse integration for performance monitoring
 
 ## 📦 Installation
 
-### Prérequis
+### Prerequisites
 
-- Node.js 18+ 
-- npm ou yarn
-- Clé API Mistral (obtenez-la sur [mistral.ai](https://mistral.ai))
+- Node.js 18+
+- npm or yarn
+- Mistral API key (get it at [mistral.ai](https://mistral.ai))
+- Chrome/Chromium (for Lighthouse audits)
 
-### Étapes d'installation
+### Installation Steps
 
-1. **Cloner le repository**
+1. **Clone the repository**
 
 ```bash
 git clone <repository-url>
-cd innovlayer
+cd NovaBlog
 ```
 
-2. **Installer les dépendances**
+2. **Install dependencies**
 
 ```bash
 npm install
 ```
 
-3. **Configurer les variables d'environnement**
+3. **Configure environment variables**
 
-Créez un fichier `.env` à la racine du projet :
+Create a `.env` file at the root of the project:
 
 ```env
 # Database
 DATABASE_URL="file:./dev.db"
 
-# Pour PostgreSQL en production:
-# DATABASE_URL="postgresql://user:password@localhost:5432/innovlayer?schema=public"
+# For PostgreSQL in production:
+# DATABASE_URL="postgresql://user:password@localhost:5432/NovaBlog?schema=public"
 
 # Server
 PORT=3000
@@ -72,33 +77,33 @@ MISTRAL_BASE_URL=https://api.mistral.ai
 TZ=Europe/Paris
 ```
 
-4. **Initialiser la base de données**
+4. **Initialize the database**
 
 ```bash
 npm run db:generate
 npm run db:migrate
 ```
 
-5. **Créer un compte admin (optionnel)**
+5. **Create an admin account (optional)**
 
 ```bash
 npm run setup
 ```
 
-Ou utilisez le wizard web après le premier lancement.
+Or use the web wizard after the first launch.
 
-6. **Lancer en développement**
+6. **Run in development**
 
 ```bash
 npm run dev
 ```
 
-⚠️ **IMPORTANT** : En développement, accédez à l'application via **http://localhost:5173** (pas le port 3000).
+⚠️ **IMPORTANT**: In development, access the application via **http://localhost:5173** (not port 3000).
 
-- **Frontend Vite** : `http://localhost:5173` (point d'entrée principal)
-- **Backend API** : `http://localhost:3000/api` (utilisé automatiquement via proxy)
+- **Frontend Vite**: `http://localhost:5173` (main entry point)
+- **Backend API**: `http://localhost:3000/api` (automatically used via proxy)
 
-Le frontend Vite proxy automatiquement les requêtes `/api` vers le backend Express.
+The Vite frontend automatically proxies `/api` requests to the Express backend.
 
 ## 🚀 Production
 
@@ -108,21 +113,21 @@ Le frontend Vite proxy automatiquement les requêtes `/api` vers le backend Expr
 npm run build
 ```
 
-### Démarrage
+### Start
 
 ```bash
 npm start
 ```
 
-### Configuration PostgreSQL
+### PostgreSQL Configuration
 
-Pour utiliser PostgreSQL en production, modifiez `DATABASE_URL` dans `.env` :
+To use PostgreSQL in production, modify `DATABASE_URL` in `.env`:
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/innovlayer?schema=public"
+DATABASE_URL="postgresql://user:password@localhost:5432/NovaBlog?schema=public"
 ```
 
-Et modifiez `prisma/schema.prisma` pour utiliser PostgreSQL :
+And modify `prisma/schema.prisma` to use PostgreSQL:
 
 ```prisma
 datasource db {
@@ -131,102 +136,120 @@ datasource db {
 }
 ```
 
-Puis régénérez le client Prisma :
+Then regenerate the Prisma client:
 
 ```bash
 npm run db:generate
 npm run db:migrate
 ```
 
-## 📋 Configuration initiale
+## 📋 Initial Configuration
 
-Au premier lancement, si aucun admin n'existe, vous serez redirigé vers `/setup` pour :
+On first launch, if no admin exists, you will be redirected to `/setup` to:
 
-1. Choisir la langue par défaut
-2. Configurer les informations de l'entreprise
-3. Paramétrer le SEO
-4. Personnaliser le thème
-5. Configurer l'IA (modèle Mistral, ton, longueur)
-6. Créer le compte administrateur
+1. Choose the default language
+2. Configure company information
+3. Set up SEO
+4. Customize the theme
+5. Configure AI (Mistral model, tone, length)
+6. Create the administrator account
 
-## 🔧 Utilisation
+## 🔧 Usage
 
-### Génération automatique d'articles
+### Automatic Article Generation
 
-Le scheduler s'exécute automatiquement tous les 3 jours à 9h00 (Europe/Paris). Il :
+The scheduler runs automatically at configured intervals (default: 1 article every 3 days at 9:00 AM Europe/Paris). It:
 
-1. Sélectionne un sujet dans la liste configurée (rotation automatique)
-2. Choisit des mots-clés à intégrer
-3. Génère un article via Mistral avec le contexte de l'entreprise
-4. Crée l'article en statut `DRAFT` pour validation
+1. Selects a topic from the configured list (automatic rotation)
+2. Chooses keywords to include
+3. Generates an article via Mistral with company context
+4. Creates the article in `DRAFT` status for validation
+5. Can generate multiple articles per interval (configurable in admin settings)
 
-### Génération manuelle
+### Manual Generation
 
-Depuis le dashboard admin (`/admin`), cliquez sur "Générer un article maintenant" ou utilisez le bouton "Générer avec IA" lors de l'édition d'un article.
+From the admin dashboard (`/admin`), click "Generate article now" or use the "Generate with AI" button when editing an article.
 
-### Configuration des sujets d'articles
+### Article Topic Configuration
 
-Dans `/admin/settings` > onglet "Blog", ajoutez une liste de sujets (un par ligne). Le scheduler utilisera ces sujets en rotation.
+In `/admin/settings` > "Blog" tab, add a list of topics (one per line). The scheduler will use these topics in rotation.
 
-### Personnalisation du thème
+### Publication Interval Configuration
 
-Dans `/admin/settings` > onglet "Thème", modifiez les couleurs via les sélecteurs de couleur. Les changements sont appliqués immédiatement via les CSS variables.
+In `/admin/settings` > "AI" tab, configure:
+- **Articles per interval**: Number of articles to generate (1-10)
+- **Interval (days)**: Time period in days (1-30)
 
-## 📁 Structure du projet
+Example: 2 articles every 3 days, 5 articles every 2 days, etc.
+
+### Theme Customization
+
+In `/admin/settings` > "Theme" tab, modify colors via color pickers. Changes are applied immediately via CSS variables.
+
+### Homepage Configuration
+
+In `/admin/homepage`, configure:
+- **Hero carousel**: Add slides with images and alt text
+- **Content sections**: Add sections with title and content (displayed as accordion if content is long)
+- **Sections title**: Optional title displayed before the sections list
+- **Contact form**: Enable and configure contact form
+- **SEO**: Configure homepage-specific SEO
+
+## 📁 Project Structure
 
 ```
-innovlayer/
+NovaBlog/
 ├── client/                 # Frontend React
 │   ├── src/
-│   │   ├── components/     # Composants réutilisables
-│   │   ├── pages/          # Pages de l'application
-│   │   ├── utils/          # Utilitaires (API, theme, etc.)
-│   │   └── App.tsx         # Point d'entrée React
+│   │   ├── components/     # Reusable components
+│   │   ├── pages/          # Application pages
+│   │   ├── utils/          # Utilities (API, theme, etc.)
+│   │   └── App.tsx         # React entry point
 │   └── index.html
 ├── server/                 # Backend Express
 │   ├── src/
-│   │   ├── routes/         # Routes API
-│   │   ├── services/       # Services (Mistral, scheduler)
-│   │   ├── middleware/    # Middleware Express
-│   │   ├── utils/          # Utilitaires
-│   │   └── index.ts        # Point d'entrée serveur
-│   └── scripts/            # Scripts utilitaires
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # Services (Mistral, scheduler, lighthouse)
+│   │   ├── middleware/    # Express middleware
+│   │   ├── utils/          # Utilities
+│   │   └── index.ts        # Server entry point
+│   └── scripts/            # Utility scripts
 ├── prisma/
-│   └── schema.prisma       # Schéma de base de données
+│   └── schema.prisma       # Database schema
 ├── package.json
 └── README.md
 ```
 
-## 🔐 Sécurité
+## 🔐 Security
 
-- Authentification par session HTTPOnly
-- Rate limiting sur les endpoints d'auth et d'IA
-- Validation stricte des payloads avec Zod
-- Hash des mots de passe avec bcrypt
-- Clé API Mistral jamais exposée au frontend
+- HTTPOnly session authentication
+- Rate limiting on auth and AI endpoints
+- Strict payload validation with Zod
+- Password hashing with bcrypt
+- Mistral API key never exposed to frontend
 
-## 🌍 Déploiement
+## 🌍 Deployment
 
-### Avec Docker (optionnel)
+### With Docker (optional)
 
-Un fichier `docker-compose.yml` est fourni pour faciliter le déploiement avec PostgreSQL :
+A `docker-compose.yml` file is provided to facilitate deployment with PostgreSQL:
 
 ```bash
 docker-compose up -d
 ```
 
-### Scheduler en production
+### Scheduler in Production
 
-Le scheduler utilise `node-cron` qui fonctionne bien en développement. Pour la production, considérez :
+The scheduler uses `node-cron` which works well in development. For production, consider:
 
-1. **Cron système** : Configurez un cron job qui appelle l'endpoint `/api/admin/scheduler/generate-now` tous les 3 jours
-2. **Service cloud** : Utilisez un service comme AWS EventBridge, Google Cloud Scheduler, ou équivalent
-3. **PM2 avec cron** : Utilisez PM2 avec le module `pm2-cron`
+1. **System cron**: Configure a cron job that calls the `/api/admin/scheduler/generate-now` endpoint at configured intervals
+2. **Cloud service**: Use a service like AWS EventBridge, Google Cloud Scheduler, or equivalent
+3. **PM2 with cron**: Use PM2 with the `pm2-cron` module
 
-Exemple de cron système :
+Example system cron:
 
 ```bash
-# Tous les 3 jours à 9h00
+# Every 3 days at 9:00 AM
 0 9 */3 * * curl -X POST http://localhost:3000/api/admin/scheduler/generate-now -H "Cookie: connect.sid=YOUR_SESSION_COOKIE"
 ```
 
@@ -236,41 +259,44 @@ Exemple de cron système :
 npm test
 ```
 
-## 📝 Scripts disponibles
+## 📝 Available Scripts
 
-- `npm run dev` : Lance le serveur et le client en mode développement
-- `npm run build` : Build pour la production
-- `npm start` : Lance l'application en production
-- `npm run setup` : Script CLI de configuration initiale
-- `npm run db:migrate` : Exécute les migrations Prisma
-- `npm run db:generate` : Génère le client Prisma
-- `npm run db:studio` : Ouvre Prisma Studio
-- `npm run lint` : Lint le code
-- `npm run format` : Formate le code avec Prettier
+- `npm run dev`: Run server and client in development mode
+- `npm run build`: Build for production
+- `npm start`: Run the application in production
+- `npm run setup`: CLI initial configuration script
+- `npm run db:migrate`: Run Prisma migrations
+- `npm run db:generate`: Generate Prisma client
+- `npm run db:studio`: Open Prisma Studio
+- `npm run lint`: Lint the code
+- `npm run format`: Format code with Prettier
 
-## 🐛 Dépannage
+## 🐛 Troubleshooting
 
-### Erreur de connexion à la base de données
+### Database Connection Error
 
-Vérifiez que `DATABASE_URL` est correctement configuré dans `.env` et que la base de données existe.
+Check that `DATABASE_URL` is correctly configured in `.env` and that the database exists.
 
-### Erreur Mistral API
+### Mistral API Error
 
-Vérifiez que `MISTRAL_API_KEY` est valide et que vous avez des crédits disponibles.
+Check that `MISTRAL_API_KEY` is valid and that you have available credits.
 
-### Le scheduler ne fonctionne pas
+### Scheduler Not Working
 
-Vérifiez les logs du serveur. Le scheduler démarre automatiquement si la configuration est complète. Vous pouvez déclencher manuellement depuis le dashboard admin.
+Check server logs. The scheduler starts automatically if configuration is complete. You can trigger it manually from the admin dashboard.
 
-## 📄 Licence
+### Lighthouse Audit Not Working
+
+Make sure Chrome/Chromium is installed on the server. On some systems, you may need to install `google-chrome` or `chromium-browser`.
+
+## 📄 License
 
 MIT
 
-## 🤝 Contribution
+## 🤝 Contributing
 
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+Contributions are welcome! Feel free to open an issue or pull request.
 
 ## 📧 Support
 
-Pour toute question, ouvrez une issue sur le repository.
-
+For any questions, open an issue on the repository.

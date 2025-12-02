@@ -41,7 +41,7 @@ export default function Footer() {
           </div>
         )}
         <div style={{ textAlign: 'center', color: '#6b7280' }}>
-          <p>&copy; {new Date().getFullYear()} InnovLayer. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} NovaBlog. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

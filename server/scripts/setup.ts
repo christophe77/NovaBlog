@@ -16,7 +16,7 @@ function question(query: string): Promise<string> {
 }
 
 async function main() {
-  console.log('🚀 InnovLayer Setup Wizard\n');
+  console.log('🚀 NovaBlog Setup Wizard\n');
 
   try {
     // Check database connection

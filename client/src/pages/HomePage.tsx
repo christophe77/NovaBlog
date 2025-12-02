@@ -31,6 +31,7 @@ interface HomepageConfig {
     enabled: boolean;
     slides: CarouselSlide[];
   };
+  sectionsTitle?: string;
   sections: HomepageSection[];
   contact: ContactBlock;
   seo: {
@@ -64,7 +65,7 @@ export default function HomePage() {
   // Update SEO meta tags
   useEffect(() => {
     if (homepageConfig?.seo) {
-      const seoTitle = homepageConfig.seo.title || settings['seo.siteTitle'] || 'InnovLayer';
+      const seoTitle = homepageConfig.seo.title || settings['seo.siteTitle'] || 'NovaBlog';
       document.title = seoTitle;
       
       let metaDescription = document.querySelector('meta[name="description"]');
@@ -99,12 +100,13 @@ export default function HomePage() {
     return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
   }
 
-  const companyName = settings['company.name'] || 'InnovLayer';
+  const companyName = settings['company.name'] || 'NovaBlog';
   const companyActivity = settings['company.activity'] || 'Solutions IT innovantes en Bretagne';
   const companyLocation = settings['company.location'] || 'Bretagne, France';
 
   const config = homepageConfig || {
     heroCarousel: { enabled: false, slides: [] },
+    sectionsTitle: '',
     sections: [],
     contact: {
       enabled: false,
@@ -125,6 +127,42 @@ export default function HomePage() {
     return <div className="ql-editor" dangerouslySetInnerHTML={{ __html: html }} />;
   };
 
+  // Extract first paragraph from HTML content
+  const getFirstParagraph = (html: string): string => {
+    if (!html || typeof document === 'undefined') return html;
+    try {
+      // Create a temporary div to parse HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const firstP = tempDiv.querySelector('p');
+      if (firstP) {
+        return firstP.outerHTML;
+      }
+      // If no <p> tag, return first 200 characters
+      const textContent = tempDiv.textContent || '';
+      if (textContent.length > 200) {
+        return textContent.substring(0, 200) + '...';
+      }
+      return html;
+    } catch {
+      return html;
+    }
+  };
+
+  // Check if content has more than one paragraph
+  const hasMultipleParagraphs = (html: string): boolean => {
+    if (!html || typeof document === 'undefined') return false;
+    try {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const paragraphs = tempDiv.querySelectorAll('p');
+      const textContent = tempDiv.textContent || '';
+      return paragraphs.length > 1 || textContent.length > 200;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <div>
       {/* Hero Carousel or Default Hero */}
@@ -139,34 +177,32 @@ export default function HomePage() {
       )}
 
       {/* Custom Sections */}
-      {config.sections.map((section, index) => (
-        <section
-          key={section.id}
-          style={{
-            padding: 'var(--spacing-2xl) 0',
-            background: index % 2 === 1 ? '#f9fafb' : 'transparent',
-          }}
-        >
+      {config.sections.length > 0 && (
+        <section style={{ padding: 'var(--spacing-2xl) 0' }}>
           <div className="container">
-            {section.title && (
-              <h2 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-lg)' }}>
-                {section.title}
+            {config.sectionsTitle && (
+              <h2 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-xl)', textAlign: 'center' }}>
+                {config.sectionsTitle}
               </h2>
             )}
-            {section.content && (
-              <div
-                style={{
-                  fontSize: '1.125rem',
-                  lineHeight: 'var(--line-height-relaxed)',
-                  color: '#374151',
-                }}
-              >
-                {renderHTML(section.content)}
-              </div>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+              {config.sections.map((section) => {
+                const index = config.sections.indexOf(section);
+                return (
+                  <SectionAccordion
+                    key={section.id}
+                    section={section}
+                    index={index}
+                    renderHTML={renderHTML}
+                    getFirstParagraph={getFirstParagraph}
+                    hasMultipleParagraphs={hasMultipleParagraphs}
+                  />
+                );
+              })}
+            </div>
           </div>
         </section>
-      ))}
+      )}
 
       {/* Contact Block */}
       {config.contact.enabled && <ContactForm config={config.contact} />}
@@ -220,6 +256,26 @@ function HeroCarousel({
               objectFit: 'cover',
             }}
           />
+          {slide.alt && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                right: '20px',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 500,
+                padding: 'var(--spacing-sm) var(--spacing-md)',
+                background: 'rgba(0, 0, 0, 0.5)',
+                borderRadius: 'var(--radius-md)',
+                backdropFilter: 'blur(4px)',
+                maxWidth: '60%',
+                textAlign: 'right',
+              }}
+            >
+              {slide.alt}
+            </div>
+          )}
         </div>
       ))}
       {slides.length > 1 && (
@@ -237,10 +293,18 @@ function HeroCarousel({
               width: '40px',
               height: '40px',
               cursor: 'pointer',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               fontSize: '1.5rem',
+              lineHeight: 1,
+              fontFamily: 'Arial, sans-serif',
             }}
+            aria-label="Slide précédent"
           >
-            ‹
+            ◀
           </button>
           <button
             onClick={() => setCurrentSlide(currentSlide === slides.length - 1 ? 0 : currentSlide + 1)}
@@ -255,10 +319,18 @@ function HeroCarousel({
               width: '40px',
               height: '40px',
               cursor: 'pointer',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               fontSize: '1.5rem',
+              lineHeight: 1,
+              fontFamily: 'Arial, sans-serif',
             }}
+            aria-label="Slide suivant"
           >
-            ›
+            ▶
           </button>
           <div
             style={{
@@ -465,6 +537,143 @@ function ContactForm({ config }: { config: ContactBlock }) {
         )}
       </div>
     </section>
+  );
+}
+
+function SectionAccordion({
+  section,
+  index,
+  renderHTML,
+  getFirstParagraph,
+  hasMultipleParagraphs,
+}: Readonly<{
+  section: HomepageSection;
+  index: number;
+  renderHTML: (html: string) => JSX.Element;
+  getFirstParagraph: (html: string) => string;
+  hasMultipleParagraphs: (html: string) => boolean;
+}>) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const shouldShowAccordion = hasMultipleParagraphs(section.content);
+
+  return (
+    <div
+      className="card"
+      style={{
+        background: index % 2 === 1 ? '#f9fafb' : 'white',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-md)',
+        overflow: 'hidden',
+      }}
+    >
+      {section.title && (
+        <div
+          style={{
+            padding: 'var(--spacing-lg)',
+            borderBottom: shouldShowAccordion ? '1px solid var(--color-border)' : 'none',
+            cursor: shouldShowAccordion ? 'pointer' : 'default',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+          onClick={() => shouldShowAccordion && setIsExpanded(!isExpanded)}
+        >
+          <h3 style={{ fontSize: '1.5rem', margin: 0, flex: 1 }}>{section.title}</h3>
+          {shouldShowAccordion && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: 'var(--color-primary)',
+                padding: 'var(--spacing-xs)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'transform 0.2s',
+                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+              aria-label={isExpanded ? 'Réduire' : 'Développer'}
+            >
+              ▼
+            </button>
+          )}
+        </div>
+      )}
+      <div
+        style={{
+          padding: section.title ? 'var(--spacing-lg)' : 'var(--spacing-lg)',
+          fontSize: '1.125rem',
+          lineHeight: 'var(--line-height-relaxed)',
+          color: '#374151',
+        }}
+      >
+        {shouldShowAccordion ? (
+          <>
+            <div
+              style={{
+                maxHeight: isExpanded ? 'none' : '200px',
+                overflow: 'hidden',
+                transition: 'max-height 0.3s ease-out',
+              }}
+            >
+              {isExpanded ? (
+                renderHTML(section.content)
+              ) : (
+                <div
+                  className="ql-editor"
+                  dangerouslySetInnerHTML={{ __html: getFirstParagraph(section.content) }}
+                />
+              )}
+            </div>
+            {!isExpanded && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(true)}
+                style={{
+                  marginTop: 'var(--spacing-md)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-primary)',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontSize: '1rem',
+                  padding: 0,
+                }}
+              >
+                Lire la suite...
+              </button>
+            )}
+            {isExpanded && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(false)}
+                style={{
+                  marginTop: 'var(--spacing-md)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-primary)',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontSize: '1rem',
+                  padding: 0,
+                }}
+              >
+                Réduire
+              </button>
+            )}
+          </>
+        ) : (
+          renderHTML(section.content)
+        )}
+      </div>
+    </div>
   );
 }
 

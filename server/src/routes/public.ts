@@ -119,6 +119,7 @@ publicRoutes.get('/homepage/config', async (req, res) => {
             enabled: false,
             slides: [],
           },
+          sectionsTitle: '',
           sections: [],
           contact: {
             enabled: false,
@@ -149,6 +150,7 @@ publicRoutes.get('/homepage/config', async (req, res) => {
             enabled: false,
             slides: [],
           },
+          sectionsTitle: '',
           sections: [],
           contact: {
             enabled: false,

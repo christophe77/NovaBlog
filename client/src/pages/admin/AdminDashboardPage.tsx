@@ -6,6 +6,9 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [topicsConfigured, setTopicsConfigured] = useState<boolean | null>(null);
+  const [lighthouseResults, setLighthouseResults] = useState<any>(null);
+  const [lighthouseLoading, setLighthouseLoading] = useState(false);
+  const [siteUrl, setSiteUrl] = useState('http://localhost:5173');
 
   useEffect(() => {
     api
@@ -26,6 +29,18 @@ export default function AdminDashboardPage() {
       .catch(() => {
         setTopicsConfigured(null);
       });
+
+    // Load cached Lighthouse results
+    api
+      .getLighthouseResults()
+      .then((data) => {
+        if (data.result) {
+          setLighthouseResults(data.result);
+        }
+      })
+      .catch(() => {
+        // Ignore errors
+      });
   }, []);
 
   const triggerGeneration = async () => {
@@ -37,6 +52,31 @@ export default function AdminDashboardPage() {
     } catch (error) {
       console.error('Error triggering generation:', error);
     }
+  };
+
+  const runLighthouse = async () => {
+    if (!siteUrl) {
+      alert('Veuillez entrer une URL');
+      return;
+    }
+
+    setLighthouseLoading(true);
+    try {
+      const data = await api.runLighthouseAudit(siteUrl);
+      setLighthouseResults(data.result);
+      alert('Audit Lighthouse terminé avec succès !');
+    } catch (error: any) {
+      alert('Erreur lors de l\'audit Lighthouse: ' + (error.message || 'Erreur inconnue'));
+      console.error('Lighthouse error:', error);
+    } finally {
+      setLighthouseLoading(false);
+    }
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 90) return '#10b981'; // green
+    if (score >= 50) return '#f59e0b'; // yellow
+    return '#ef4444'; // red
   };
 
   if (loading) {
@@ -97,6 +137,70 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <p>Aucune génération effectuée pour le moment.</p>
+        )}
+      </div>
+
+      {/* Lighthouse Section */}
+      <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <h2 style={{ fontSize: '1.25rem', marginBottom: 'var(--spacing-md)' }}>📊 Scores Lighthouse</h2>
+        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: 'var(--spacing-md)' }}>
+          Analysez les performances, l'accessibilité, les bonnes pratiques et le SEO de votre site.
+        </p>
+        
+        <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)' }}>URL du site</label>
+            <input
+              type="text"
+              className="form-input"
+              value={siteUrl}
+              onChange={(e) => setSiteUrl(e.target.value)}
+              placeholder="http://localhost:5173"
+            />
+          </div>
+          <button 
+            onClick={runLighthouse} 
+            className="btn btn-primary"
+            disabled={lighthouseLoading}
+          >
+            {lighthouseLoading ? 'Analyse en cours...' : 'Lancer l\'audit'}
+          </button>
+        </div>
+
+        {lighthouseResults && (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ textAlign: 'center', padding: 'var(--spacing-md)', background: '#f9fafb', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: 'var(--spacing-xs)' }}>Performance</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: getScoreColor(lighthouseResults.performance) }}>
+                  {lighthouseResults.performance}
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', padding: 'var(--spacing-md)', background: '#f9fafb', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: 'var(--spacing-xs)' }}>Accessibilité</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: getScoreColor(lighthouseResults.accessibility) }}>
+                  {lighthouseResults.accessibility}
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', padding: 'var(--spacing-md)', background: '#f9fafb', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: 'var(--spacing-xs)' }}>Bonnes pratiques</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: getScoreColor(lighthouseResults.bestPractices) }}>
+                  {lighthouseResults.bestPractices}
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', padding: 'var(--spacing-md)', background: '#f9fafb', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: 'var(--spacing-xs)' }}>SEO</div>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: getScoreColor(lighthouseResults.seo) }}>
+                  {lighthouseResults.seo}
+                </div>
+              </div>
+            </div>
+            {lighthouseResults.timestamp && (
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center' }}>
+                Dernier audit: {new Date(lighthouseResults.timestamp).toLocaleString('fr-FR')}
+              </p>
+            )}
+          </div>
         )}
       </div>
 

@@ -1,25 +1,26 @@
-# Configuration de la base de données
+# Database Configuration
 
-## SQLite (par défaut)
+## SQLite (Default)
 
-Le schéma est configuré pour SQLite par défaut, ce qui est idéal pour le développement.
+The schema is configured for SQLite by default, which is ideal for development.
 
-### Avantages
-- Aucune installation requise
-- Fichier de base de données local (`dev.db`)
-- Parfait pour le développement et les tests
+### Advantages
 
-### Utilisation
+- No installation required
+- Local database file (`dev.db`)
+- Perfect for development and testing
 
-Le schéma utilise des `String` au lieu d'enums et de types `@db.Text` pour la compatibilité SQLite.
+### Usage
 
-## PostgreSQL (production)
+The schema uses `String` instead of enums and `@db.Text` types for SQLite compatibility.
 
-Pour utiliser PostgreSQL en production, suivez ces étapes :
+## PostgreSQL (Production)
 
-### 1. Modifier le schéma Prisma
+To use PostgreSQL in production, follow these steps:
 
-Dans `prisma/schema.prisma`, remplacez :
+### 1. Modify Prisma Schema
+
+In `prisma/schema.prisma`, replace:
 
 ```prisma
 datasource db {
@@ -28,7 +29,7 @@ datasource db {
 }
 ```
 
-Par :
+With:
 
 ```prisma
 datasource db {
@@ -37,14 +38,14 @@ datasource db {
 }
 ```
 
-### 2. Optionnel : Optimiser pour PostgreSQL
+### 2. Optional: Optimize for PostgreSQL
 
-Si vous voulez utiliser les fonctionnalités PostgreSQL (enums, types Text), vous pouvez créer un schéma optimisé :
+If you want to use PostgreSQL features (enums, Text types), you can create an optimized schema:
 
 ```prisma
 model Article {
   // ...
-  content     String        @db.Text  // PostgreSQL supporte @db.Text
+  content     String        @db.Text  // PostgreSQL supports @db.Text
   excerpt     String?       @db.Text
   seoDescription String?    @db.Text
   aiPrompt String?       @db.Text
@@ -52,7 +53,7 @@ model Article {
 }
 ```
 
-Et utiliser des enums :
+And use enums:
 
 ```prisma
 enum ArticleStatus {
@@ -68,15 +69,15 @@ model Article {
 }
 ```
 
-### 3. Configurer la variable d'environnement
+### 3. Configure Environment Variable
 
-Dans `.env` :
+In `.env`:
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/innovlayer?schema=public"
+DATABASE_URL="postgresql://user:password@localhost:5432/NovaBlog?schema=public"
 ```
 
-### 4. Générer et migrer
+### 4. Generate and Migrate
 
 ```bash
 npm run db:generate
@@ -85,29 +86,29 @@ npm run db:migrate
 
 ## Docker Compose
 
-Un fichier `docker-compose.yml` est fourni pour démarrer PostgreSQL rapidement :
+A `docker-compose.yml` file is provided to quickly start PostgreSQL:
 
 ```bash
 docker-compose up -d
 ```
 
-Cela démarre PostgreSQL sur le port 5432 avec :
-- User: `innovlayer`
-- Password: `innovlayer_password`
-- Database: `innovlayer`
+This starts PostgreSQL on port 5432 with:
 
-## Migration de SQLite vers PostgreSQL
+- User: `NovaBlog`
+- Password: `NovaBlog_password`
+- Database: `NovaBlog`
 
-1. Exportez les données de SQLite (si vous en avez)
-2. Configurez PostgreSQL
-3. Modifiez le schéma Prisma
-4. Exécutez les migrations
-5. Importez les données si nécessaire
+## Migration from SQLite to PostgreSQL
+
+1. Export SQLite data (if you have any)
+2. Configure PostgreSQL
+3. Modify Prisma schema
+4. Run migrations
+5. Import data if necessary
 
 ## Notes
 
-- Le schéma actuel est compatible avec SQLite et PostgreSQL
-- Les enums sont représentés comme des `String` pour la compatibilité SQLite
-- Les types `@db.Text` sont omis pour SQLite mais peuvent être ajoutés pour PostgreSQL
-- SQLite gère automatiquement les `String` comme `TEXT` pour les champs longs
-
+- Current schema is compatible with SQLite and PostgreSQL
+- Enums are represented as `String` for SQLite compatibility
+- `@db.Text` types are omitted for SQLite but can be added for PostgreSQL
+- SQLite automatically handles `String` as `TEXT` for long fields

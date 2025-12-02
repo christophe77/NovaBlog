@@ -24,6 +24,8 @@ async function generateScheduledArticle(): Promise<void> {
             'ai.tone',
             'ai.length',
             'ai.apiKey',
+            'ai.articlesPerInterval',
+            'ai.intervalDays',
             'language.default',
           ],
         },
@@ -36,6 +38,8 @@ async function generateScheduledArticle(): Promise<void> {
     const keywords = JSON.parse(settingsMap.get('blog.keywords') || '[]');
     const globalKeywords = JSON.parse(settingsMap.get('seo.globalKeywords') || '[]');
     const defaultLanguage = JSON.parse(settingsMap.get('language.default') || '"fr"');
+    const articlesPerInterval = parseInt(settingsMap.get('ai.articlesPerInterval') || '1', 10);
+    const intervalDays = parseInt(settingsMap.get('ai.intervalDays') || '3', 10);
 
     if (topics.length === 0) {
       console.log('⚠️  No topics configured, skipping article generation');
@@ -53,67 +57,88 @@ async function generateScheduledArticle(): Promise<void> {
       }
     }
 
-    // Get last generated article to rotate topics
-    const lastArticle = await prisma.article.findFirst({
+    // Get last generated articles to determine what to generate next
+    const lastArticles = await prisma.article.findMany({
       where: { source: 'AI_GENERATED' },
       orderBy: { createdAt: 'desc' },
+      take: articlesPerInterval,
     });
 
+    // Determine starting topic index
     let topicIndex = 0;
-    if (lastArticle?.aiPrompt) {
+    if (lastArticles.length > 0 && lastArticles[0]?.aiPrompt) {
       // Try to find which topic was used last
       const lastTopic = topics.findIndex((t: string) =>
-        lastArticle.aiPrompt?.includes(t)
+        lastArticles[0].aiPrompt?.includes(t)
       );
       topicIndex = lastTopic >= 0 ? (lastTopic + 1) % topics.length : 0;
     }
 
-    const selectedTopic = topics[topicIndex];
-    const selectedKeywords = keywords.length > 0 
-      ? [keywords[topicIndex % keywords.length]] 
-      : [];
+    // Generate the configured number of articles
+    const generatedArticles: string[] = [];
+    
+    for (let i = 0; i < articlesPerInterval; i++) {
+      const currentTopicIndex = (topicIndex + i) % topics.length;
+      const selectedTopic = topics[currentTopicIndex];
+      const selectedKeywords = keywords.length > 0 
+        ? [keywords[currentTopicIndex % keywords.length]] 
+        : [];
 
-    // Generate article
-    const articleData = await mistralService.generateArticle(
-      {
-        topic: selectedTopic,
-        keywords: selectedKeywords,
-        language: defaultLanguage,
-        companyInfo: {
-          name: JSON.parse(settingsMap.get('company.name') || 'null'),
-          activity: JSON.parse(settingsMap.get('company.activity') || 'null'),
-          location: JSON.parse(settingsMap.get('company.location') || 'null'),
-        },
-        seoConfig: {
-          globalKeywords,
-        },
-        tone: JSON.parse(settingsMap.get('ai.tone') || '"technique mais accessible"'),
-        length: (JSON.parse(settingsMap.get('ai.length') || '"medium"') as 'short' | 'medium' | 'long'),
-      },
-      apiKey
-    );
+      try {
+        // Generate article
+        const articleData = await mistralService.generateArticle(
+          {
+            topic: selectedTopic,
+            keywords: selectedKeywords,
+            language: defaultLanguage,
+            companyInfo: {
+              name: JSON.parse(settingsMap.get('company.name') || 'null'),
+              activity: JSON.parse(settingsMap.get('company.activity') || 'null'),
+              location: JSON.parse(settingsMap.get('company.location') || 'null'),
+            },
+            seoConfig: {
+              globalKeywords,
+            },
+            tone: JSON.parse(settingsMap.get('ai.tone') || '"technique mais accessible"'),
+            length: (JSON.parse(settingsMap.get('ai.length') || '"medium"') as 'short' | 'medium' | 'long'),
+          },
+          apiKey
+        );
 
-    // Create article as DRAFT
-    const slug = generateSlug(articleData.title);
-    const existingSlug = await prisma.article.findUnique({ where: { slug } });
-    const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
+        // Create article as DRAFT
+        const slug = generateSlug(articleData.title);
+        const existingSlug = await prisma.article.findUnique({ where: { slug } });
+        const finalSlug = existingSlug ? `${slug}-${Date.now()}-${i}` : slug;
 
-    await prisma.article.create({
-      data: {
-        slug: finalSlug,
-        title: articleData.title,
-        content: articleData.content,
-        excerpt: articleData.excerpt,
-        language: defaultLanguage,
-        status: 'DRAFT',
-        seoTitle: articleData.seoTitle,
-        seoDescription: articleData.seoDescription,
-        keywords: JSON.stringify(selectedKeywords),
-        source: 'AI_GENERATED',
-        aiPrompt: `Topic: ${selectedTopic}`,
-        aiModel: process.env.MISTRAL_MODEL || 'mistral-large-latest',
-      },
-    });
+        await prisma.article.create({
+          data: {
+            slug: finalSlug,
+            title: articleData.title,
+            content: articleData.content,
+            excerpt: articleData.excerpt,
+            language: defaultLanguage,
+            status: 'DRAFT',
+            seoTitle: articleData.seoTitle,
+            seoDescription: articleData.seoDescription,
+            keywords: JSON.stringify(selectedKeywords),
+            source: 'AI_GENERATED',
+            aiPrompt: `Topic: ${selectedTopic}`,
+            aiModel: process.env.MISTRAL_MODEL || 'mistral-large-latest',
+          },
+        });
+
+        generatedArticles.push(finalSlug);
+        console.log(`✅ Article ${i + 1}/${articlesPerInterval} generated successfully:`, finalSlug);
+        
+        // Small delay between articles to avoid rate limiting
+        if (i < articlesPerInterval - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+        }
+      } catch (error) {
+        console.error(`❌ Error generating article ${i + 1}/${articlesPerInterval}:`, error);
+        // Continue with next article even if one fails
+      }
+    }
 
     // Log task
     await prisma.scheduledTask.create({
@@ -125,7 +150,7 @@ async function generateScheduledArticle(): Promise<void> {
       },
     });
 
-    console.log('✅ Article generated successfully:', finalSlug);
+    console.log(`✅ Generated ${generatedArticles.length}/${articlesPerInterval} articles successfully`);
   } catch (error) {
     console.error('❌ Error generating article:', error);
 
@@ -147,29 +172,41 @@ export function startScheduler(): void {
     return;
   }
 
-  // Run every 3 days at 9 AM (Europe/Paris)
-  // Cron format: minute hour day month weekday
-  // "0 9 */3 * *" = every 3 days at 9 AM
-  // Note: node-cron doesn't support "every N days" directly, so we use a workaround
-  // For production, consider using a more robust scheduler or external cron service
-  
-  // Run every day and check if 3 days have passed since last generation
+  // Run daily at 9 AM (Europe/Paris) and check if interval has passed since last generation
+  // The interval is configurable via settings (ai.intervalDays)
   cronJob = cron.schedule('0 9 * * *', async () => {
-    const lastTask = await prisma.scheduledTask.findFirst({
-      where: {
-        type: 'article_generation',
-        status: 'COMPLETED',
-      },
-      orderBy: { completedAt: 'desc' },
-    });
+    try {
+      // Get current interval configuration
+      const intervalSetting = await prisma.setting.findUnique({
+        where: { key: 'ai.intervalDays' },
+      });
+      
+      const intervalDays = intervalSetting 
+        ? parseInt(intervalSetting.value, 10) || 3
+        : 3;
 
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      const lastTask = await prisma.scheduledTask.findFirst({
+        where: {
+          type: 'article_generation',
+          status: 'COMPLETED',
+        },
+        orderBy: { completedAt: 'desc' },
+      });
 
-    if (!lastTask || !lastTask.completedAt || lastTask.completedAt < threeDaysAgo) {
-      await generateScheduledArticle();
-    } else {
-      console.log('⏭️  Skipping: Last article generated less than 3 days ago');
+      const intervalAgo = new Date();
+      intervalAgo.setDate(intervalAgo.getDate() - intervalDays);
+
+      if (!lastTask || !lastTask.completedAt || lastTask.completedAt < intervalAgo) {
+        console.log(`📅 Interval of ${intervalDays} days has passed, generating articles...`);
+        await generateScheduledArticle();
+      } else {
+        const daysSince = Math.floor(
+          (new Date().getTime() - lastTask.completedAt.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        console.log(`⏭️  Skipping: Last articles generated ${daysSince} day(s) ago (interval: ${intervalDays} days)`);
+      }
+    } catch (error) {
+      console.error('❌ Error in scheduler check:', error);
     }
   }, {
     scheduled: true,

@@ -17,9 +17,9 @@ const __dirname = path.dirname(__filename);
 
 // In development with tsx, __dirname points to server/src
 // In production, it points to server/dist
-// We need to resolve the uploads directory relative to the project root
-const projectRoot = path.join(__dirname, '../..');
-const uploadsPath = path.resolve(projectRoot, 'uploads');
+// We need to resolve the uploads directory relative to server directory
+// Files are stored in server/uploads (as configured in middleware/upload.ts)
+const uploadsPath = path.join(__dirname, '../uploads');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

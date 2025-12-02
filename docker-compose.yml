@@ -3,21 +3,20 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: innovlayer-db
+    container_name: NovaBlog-db
     environment:
-      POSTGRES_USER: innovlayer
-      POSTGRES_PASSWORD: innovlayer_password
-      POSTGRES_DB: innovlayer
+      POSTGRES_USER: NovaBlog
+      POSTGRES_PASSWORD: NovaBlog_password
+      POSTGRES_DB: NovaBlog
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U innovlayer"]
+      test: ['CMD-SHELL', 'pg_isready -U NovaBlog']
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
   postgres_data:
-

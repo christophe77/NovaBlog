@@ -114,6 +114,16 @@ export const api = {
   getDashboardStats: () =>
     apiRequest<{ stats: any }>('/admin/dashboard/stats'),
 
+  // Lighthouse
+  runLighthouseAudit: (siteUrl: string) =>
+    apiRequest<{ result: any }>('/admin/lighthouse/audit', {
+      method: 'POST',
+      body: JSON.stringify({ siteUrl }),
+    }),
+
+  getLighthouseResults: () =>
+    apiRequest<{ result: any }>('/admin/lighthouse/results'),
+
   // Setup
   getSetupStatus: () =>
     apiRequest<{ setupComplete: boolean }>('/setup/status'),

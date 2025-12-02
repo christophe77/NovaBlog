@@ -1,7 +1,7 @@
 // Default settings for the platform
 export const defaultSettings = {
   company: {
-    name: 'InnovLayer',
+    name: 'NovaBlog',
     activity: 'Solutions IT innovantes en Bretagne',
     location: 'Bretagne, France',
     siren: '',
@@ -18,7 +18,7 @@ export const defaultSettings = {
     accentColor: '#3b82f6',
   },
   seo: {
-    siteTitle: 'InnovLayer - Micro-blogging avec IA',
+    siteTitle: 'NovaBlog - Micro-blogging avec IA',
     metaDescription: 'Plateforme de micro-blogging dédiée à l\'innovation technologique et à l\'intelligence artificielle en Bretagne',
     globalKeywords: ['innovation', 'bretagne', 'intelligence artificielle', 'IT', 'tech'],
   },
@@ -35,6 +35,8 @@ export const defaultSettings = {
     model: 'mistral-large-latest',
     tone: 'technique mais accessible',
     length: 'medium',
+    articlesPerInterval: 1,
+    intervalDays: 3,
   },
   language: {
     default: 'fr',

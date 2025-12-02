@@ -435,6 +435,53 @@ adminRoutes.get('/dashboard/stats', async (req, res) => {
   }
 });
 
+// Lighthouse audit
+adminRoutes.post('/lighthouse/audit', async (req, res) => {
+  try {
+    const { siteUrl } = req.body;
+    
+    if (!siteUrl) {
+      return res.status(400).json({ error: { message: 'siteUrl is required' } });
+    }
+
+    // Valider l'URL
+    try {
+      new URL(siteUrl);
+    } catch {
+      return res.status(400).json({ error: { message: 'Invalid URL format' } });
+    }
+
+    const { runLighthouseAudit } = await import('../services/lighthouse.js');
+    const result = await runLighthouseAudit(siteUrl);
+
+    res.json({ result });
+  } catch (error: any) {
+    console.error('Lighthouse audit error:', error);
+    res.status(500).json({ 
+      error: { 
+        message: error.message || 'Failed to run Lighthouse audit. Make sure Chrome/Chromium is installed.' 
+      } 
+    });
+  }
+});
+
+// Get cached Lighthouse results
+adminRoutes.get('/lighthouse/results', async (req, res) => {
+  try {
+    const { getCachedResult } = await import('../services/lighthouse.js');
+    const result = getCachedResult();
+    
+    if (!result) {
+      return res.json({ result: null });
+    }
+
+    res.json({ result });
+  } catch (error) {
+    console.error('Get Lighthouse results error:', error);
+    res.status(500).json({ error: { message: 'Internal server error' } });
+  }
+});
+
 // Manual trigger for article generation
 adminRoutes.post('/scheduler/generate-now', aiRateLimiter, async (req, res) => {
   try {
@@ -530,6 +577,7 @@ adminRoutes.get('/homepage/config', async (req, res) => {
             enabled: false,
             slides: [],
           },
+          sectionsTitle: '',
           sections: [],
           contact: {
             enabled: false,
@@ -560,6 +608,7 @@ adminRoutes.get('/homepage/config', async (req, res) => {
             enabled: false,
             slides: [],
           },
+          sectionsTitle: '',
           sections: [],
           contact: {
             enabled: false,

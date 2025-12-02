@@ -1,37 +1,36 @@
-# Guide de contribution
+# Contributing Guide
 
-Merci de votre intérêt pour contribuer à InnovLayer !
+Thank you for your interest in contributing to NovaBlog!
 
-## Structure du projet
+## Project Structure
 
-- `/server` : Backend Express (TypeScript)
-- `/client` : Frontend React (TypeScript)
-- `/prisma` : Schéma de base de données
+- `/server`: Backend Express (TypeScript)
+- `/client`: Frontend React (TypeScript)
+- `/prisma`: Database schema
 
-## Développement
+## Development
 
-1. Fork le projet
-2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/ma-fonctionnalite`)
-3. Committez vos changements (`git commit -m 'Ajout de ma fonctionnalité'`)
-4. Push vers la branche (`git push origin feature/ma-fonctionnalite`)
-5. Ouvrez une Pull Request
+1. Fork the project
+2. Create a branch for your feature (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a Pull Request
 
-## Standards de code
+## Code Standards
 
-- Utilisez TypeScript partout
-- Suivez les règles ESLint et Prettier configurées
-- Écrivez des tests pour les nouvelles fonctionnalités
-- Documentez votre code
+- Use TypeScript everywhere
+- Follow configured ESLint and Prettier rules
+- Write tests for new features
+- Document your code
 
 ## Tests
 
-Avant de soumettre une PR, assurez-vous que :
+Before submitting a PR, make sure:
 
-- Les tests passent : `npm test`
-- Le linting est OK : `npm run lint`
-- Le code est formaté : `npm run format`
+- Tests pass: `npm test`
+- Linting is OK: `npm run lint`
+- Code is formatted: `npm run format`
 
 ## Questions
 
-Pour toute question, ouvrez une issue sur le repository.
-
+For any questions, open an issue on the repository.

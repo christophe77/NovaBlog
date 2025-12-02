@@ -1,141 +1,203 @@
-# Architecture du projet
+# Project Architecture
 
-## Vue d'ensemble
+## Overview
 
-InnovLayer est une application full-stack TypeScript avec :
-- **Backend** : Express.js avec API REST
-- **Frontend** : React avec SSR (Server-Side Rendering)
-- **Base de données** : Prisma ORM avec support SQLite/PostgreSQL
-- **IA** : Intégration Mistral API (backend uniquement)
+NovaBlog is a full-stack TypeScript application with:
 
-## Structure des dossiers
+- **Backend**: Express.js with REST API
+- **Frontend**: React with SSR (Server-Side Rendering)
+- **Database**: Prisma ORM with SQLite/PostgreSQL support
+- **AI**: Mistral API integration (backend only)
+- **Performance**: Lighthouse integration for performance monitoring
+
+## Folder Structure
 
 ```
-innovlayer/
+NovaBlog/
 ├── client/                    # Frontend React
 │   ├── src/
-│   │   ├── components/       # Composants réutilisables
+│   │   ├── components/       # Reusable components
 │   │   │   ├── Layout.tsx
 │   │   │   ├── Header.tsx
-│   │   │   └── Footer.tsx
-│   │   ├── pages/            # Pages de l'application
+│   │   │   ├── Footer.tsx
+│   │   │   └── RichTextEditor.tsx
+│   │   ├── pages/            # Application pages
 │   │   │   ├── HomePage.tsx
 │   │   │   ├── BlogPage.tsx
 │   │   │   ├── ArticlePage.tsx
 │   │   │   ├── SetupPage.tsx
-│   │   │   └── admin/         # Pages admin
-│   │   ├── utils/            # Utilitaires
-│   │   │   ├── api.ts        # Client API
-│   │   │   └── theme.ts      # Gestion du thème
-│   │   ├── App.tsx           # Point d'entrée React
-│   │   └── main.tsx          # Bootstrap React
+│   │   │   └── admin/         # Admin pages
+│   │   │       ├── AdminDashboardPage.tsx
+│   │   │       ├── AdminArticlesPage.tsx
+│   │   │       ├── AdminArticleEditPage.tsx
+│   │   │       ├── AdminSettingsPage.tsx
+│   │   │       └── AdminHomepagePage.tsx
+│   │   ├── utils/            # Utilities
+│   │   │   ├── api.ts        # API client
+│   │   │   └── theme.ts      # Theme management
+│   │   ├── App.tsx           # React entry point
+│   │   └── main.tsx          # React bootstrap
 │   └── index.html
 │
 ├── server/                    # Backend Express
 │   ├── src/
-│   │   ├── routes/           # Routes API
-│   │   │   ├── index.ts      # Configuration des routes
-│   │   │   ├── auth.ts       # Authentification
-│   │   │   ├── admin.ts      # Routes admin
-│   │   │   ├── public.ts     # Routes publiques
+│   │   ├── routes/           # API routes
+│   │   │   ├── index.ts      # Route configuration
+│   │   │   ├── auth.ts       # Authentication
+│   │   │   ├── admin.ts      # Admin routes
+│   │   │   ├── public.ts     # Public routes
 │   │   │   └── setup.ts      # Setup wizard
-│   │   ├── services/         # Services métier
-│   │   │   ├── mistral.ts    # Service Mistral IA
-│   │   │   └── scheduler.ts  # Scheduler articles
-│   │   ├── middleware/       # Middleware Express
-│   │   │   ├── auth.ts       # Authentification
+│   │   ├── services/         # Business services
+│   │   │   ├── mistral.ts    # Mistral AI service
+│   │   │   ├── scheduler.ts  # Article scheduler
+│   │   │   ├── lighthouse.ts # Lighthouse audit service
+│   │   │   └── email.ts      # Email service
+│   │   ├── middleware/       # Express middleware
+│   │   │   ├── auth.ts       # Authentication
 │   │   │   ├── errorHandler.ts
-│   │   │   └── rateLimit.ts
-│   │   ├── utils/            # Utilitaires
+│   │   │   ├── rateLimit.ts
+│   │   │   └── upload.ts     # File upload (multer)
+│   │   ├── utils/            # Utilities
 │   │   │   ├── password.ts
 │   │   │   ├── slug.ts
 │   │   │   ├── validation.ts
-│   │   │   └── setup.ts
-│   │   ├── lib/              # Bibliothèques
-│   │   │   └── prisma.ts     # Client Prisma
-│   │   └── index.ts          # Point d'entrée serveur
+│   │   │   ├── setup.ts
+│   │   │   └── defaultSettings.ts
+│   │   ├── lib/              # Libraries
+│   │   │   └── prisma.ts     # Prisma client
+│   │   └── index.ts          # Server entry point
 │   └── scripts/
-│       └── setup.ts           # Script CLI setup
+│       └── setup.ts           # CLI setup script
 │
 └── prisma/
-    └── schema.prisma          # Schéma de base de données
+    └── schema.prisma          # Database schema
 ```
 
-## Flux de données
+## Data Flow
 
-### Génération automatique d'articles
+### Automatic Article Generation
 
 1. **Scheduler** (`server/src/services/scheduler.ts`)
-   - S'exécute tous les 3 jours via `node-cron`
-   - Récupère la configuration (sujets, mots-clés, infos entreprise)
-   - Appelle `MistralService.generateArticle()`
-   - Crée un article en statut `DRAFT`
-   - Log la tâche dans `ScheduledTask`
+   - Runs at configured intervals via `node-cron` (configurable: X articles every Y days)
+   - Retrieves configuration (topics, keywords, company info, interval settings)
+   - Generates multiple articles if configured (e.g., 2 articles every 3 days)
+   - Calls `MistralService.generateArticle()` for each article
+   - Creates articles in `DRAFT` status
+   - Logs tasks in `ScheduledTask`
 
-2. **Service Mistral** (`server/src/services/mistral.ts`)
-   - Construit un prompt avec contexte (entreprise, thème, SEO)
-   - Appelle l'API Mistral
-   - Parse la réponse JSON
-   - Retourne un article structuré
+2. **Mistral Service** (`server/src/services/mistral.ts`)
+   - Builds a prompt with context (company, theme, SEO)
+   - Calls Mistral API
+   - Parses JSON response
+   - Returns structured article
 
-### Authentification
+### Authentication
 
 1. **Login** (`POST /api/auth/login`)
-   - Valide email/password avec Zod
-   - Vérifie le hash bcrypt
-   - Crée une session Express
-   - Retourne les infos utilisateur
+   - Validates email/password with Zod
+   - Verifies bcrypt hash
+   - Creates Express session
+   - Returns user info
 
-2. **Protection des routes**
-   - Middleware `requireAuth` vérifie la session
-   - Middleware `requireAdmin` vérifie le rôle
+2. **Route Protection**
+   - `requireAuth` middleware checks session
+   - `requireAdmin` middleware checks role
 
 ### Configuration
 
-Les paramètres sont stockés dans la table `Setting` avec :
-- `key` : Clé unique (ex: `company.name`)
-- `value` : Valeur JSON stringifiée
-- `category` : Catégorie (company, theme, seo, etc.)
+Settings are stored in the `Setting` table with:
 
-## Base de données
+- `key`: Unique key (e.g., `company.name`)
+- `value`: JSON stringified value
+- `category`: Category (company, theme, seo, ai, etc.)
 
-### Modèles principaux
+### Homepage Configuration
 
-- **User** : Comptes administrateurs
-- **Article** : Articles du blog (générés IA ou manuels)
-- **Setting** : Configuration globale (clé/valeur)
-- **ScheduledTask** : Logs des tâches planifiées
-- **PasswordResetToken** : Tokens de réinitialisation
+Homepage settings are stored in a single `Setting` record with key `homepage.config`:
+
+```json
+{
+  "heroCarousel": {
+    "enabled": true,
+    "slides": [
+      {
+        "id": "1",
+        "image": "/uploads/homepage-image-xxx.webp",
+        "alt": "Alt text"
+      }
+    ]
+  },
+  "sectionsTitle": "Our Activities",
+  "sections": [
+    {
+      "id": "1",
+      "title": "Section Title",
+      "content": "<p>HTML content</p>"
+    }
+  ],
+  "contact": {
+    "enabled": true,
+    "title": "Contact Us"
+    // ... contact form configuration
+  },
+  "seo": {
+    "title": "Homepage Title",
+    "description": "Homepage description"
+  }
+}
+```
+
+### Lighthouse Integration
+
+1. **Lighthouse Service** (`server/src/services/lighthouse.ts`)
+   - Runs Lighthouse audits programmatically
+   - Caches results for 1 hour
+   - Launches Chrome in headless mode
+   - Returns performance, accessibility, best practices, and SEO scores
+
+2. **API Routes**
+   - `POST /api/admin/lighthouse/audit`: Runs audit for a URL
+   - `GET /api/admin/lighthouse/results`: Gets cached results
+
+## Database
+
+### Main Models
+
+- **User**: Administrator accounts
+- **Article**: Blog articles (AI-generated or manual)
+- **Setting**: Global configuration (key/value)
+- **ScheduledTask**: Scheduled task logs
+- **PasswordResetToken**: Password reset tokens
 
 ### Migrations
 
 ```bash
-npm run db:migrate  # Crée/applique les migrations
-npm run db:generate # Génère le client Prisma
+npm run db:migrate  # Create/apply migrations
+npm run db:generate # Generate Prisma client
 ```
 
-## Sécurité
+## Security
 
-1. **Authentification**
-   - Sessions HTTPOnly
-   - Hash bcrypt pour les mots de passe
-   - Tokens de reset avec expiration
+1. **Authentication**
+   - HTTPOnly sessions
+   - bcrypt password hashing
+   - Reset tokens with expiration
 
 2. **Rate Limiting**
-   - Auth : 5 tentatives / 15 minutes
-   - IA : 10 requêtes / heure
+   - Auth: 5 attempts / 15 minutes
+   - AI: 10 requests / hour
 
 3. **Validation**
-   - Zod pour valider les payloads API
-   - Sanitization des entrées utilisateur
+   - Zod for API payload validation
+   - User input sanitization
 
-4. **Clé API Mistral**
-   - Jamais exposée au frontend
-   - Stockée uniquement en variable d'environnement
+4. **Mistral API Key**
+   - Never exposed to frontend
+   - Stored only in environment variable
 
-## Thème et Design Tokens
+## Theme and Design Tokens
 
-Les design tokens sont stockés en DB et appliqués via CSS variables :
+Design tokens are stored in DB and applied via CSS variables:
 
 ```css
 :root {
@@ -145,58 +207,67 @@ Les design tokens sont stockés en DB et appliqués via CSS variables :
 }
 ```
 
-Modification via `/admin/settings` > Thème, appliquée immédiatement.
+Modified via `/admin/settings` > Theme, applied immediately.
 
-## Déploiement
+## File Uploads
 
-### Développement
+- Files are stored in `server/uploads/`
+- Served statically via Express at `/uploads/`
+- Supported types: images (logo, article images, homepage carousel)
+- Automatic filename generation with timestamp and random suffix
+
+## Deployment
+
+### Development
 
 ```bash
-npm run dev  # Lance server + client (Vite dev server)
+npm run dev  # Run server + client (Vite dev server)
 ```
 
-- Backend : `http://localhost:3000`
-- Frontend : `http://localhost:5173` (proxy vers API)
+- Backend: `http://localhost:3000`
+- Frontend: `http://localhost:5173` (proxies to API)
 
 ### Production
 
 ```bash
 npm run build  # Build client + server
-npm start      # Lance le serveur Express
+npm start      # Run Express server
 ```
 
-- Express sert les fichiers statiques du build client
-- SSR basique (fallback vers `index.html` pour le routing client)
+- Express serves static files from client build
+- Basic SSR (fallback to `index.html` for client routing)
 
-### Scheduler en production
+### Scheduler in Production
 
-Le scheduler `node-cron` fonctionne en dev. Pour la prod, utilisez :
-- Cron système
-- Service cloud (AWS EventBridge, etc.)
-- PM2 avec cron
+The `node-cron` scheduler works in dev. For production, use:
 
-## Extensibilité
+- System cron
+- Cloud service (AWS EventBridge, etc.)
+- PM2 with cron
 
-Le projet est conçu pour être facilement extensible :
+## Extensibility
 
-1. **Nouveaux rôles** : Ajoutez des valeurs à l'enum `UserRole` dans Prisma
-2. **Multi-langue articles** : Ajoutez une table `ArticleTranslation`
-3. **Tags/Catégories** : Créez les modèles Prisma correspondants
-4. **RSS** : Ajoutez une route `/api/rss.xml` qui génère le flux
-5. **Autres modèles IA** : Modifiez `MistralService` ou créez un service générique
+The project is designed to be easily extensible:
+
+1. **New roles**: Add values to `UserRole` enum in Prisma
+2. **Multi-language articles**: Add `ArticleTranslation` table
+3. **Tags/Categories**: Create corresponding Prisma models
+4. **RSS**: Add `/api/rss.xml` route that generates feed
+5. **Other AI models**: Modify `MistralService` or create generic service
+6. **Additional homepage sections**: Extend `homepage.config` structure
 
 ## Tests
 
-Structure prévue pour les tests :
+Planned test structure:
 
 ```
 server/src/
 ├── __tests__/
 │   ├── services/
-│   │   └── mistral.test.ts
+│   │   ├── mistral.test.ts
+│   │   └── lighthouse.test.ts
 │   └── routes/
 │       └── auth.test.ts
 ```
 
-Utilisez Vitest pour les tests unitaires et d'intégration.
-
+Use Vitest for unit and integration tests.

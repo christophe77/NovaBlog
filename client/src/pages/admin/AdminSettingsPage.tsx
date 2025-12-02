@@ -46,6 +46,10 @@ export default function AdminSettingsPage() {
             value = [];
           }
         }
+        // Convert numeric fields to numbers
+        if ((key === 'articlesPerInterval' || key === 'intervalDays') && typeof value === 'string') {
+          value = parseInt(value, 10) || (key === 'articlesPerInterval' ? 1 : 3);
+        }
         flatSettings[`${activeTab}.${key}`] = value;
       });
       await api.updateSettings(flatSettings);
@@ -608,6 +612,52 @@ export default function AdminSettingsPage() {
                 <option value="medium">Moyen (1000-1500 mots)</option>
                 <option value="long">Long (2000-2500 mots)</option>
               </select>
+            </div>
+
+            <div style={{ marginTop: 'var(--spacing-xl)', paddingTop: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border)' }}>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: 'var(--spacing-md)' }}>Publication automatique</h3>
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: 'var(--spacing-md)' }}>
+                Configurez la fréquence de génération automatique des articles par l'IA.
+              </p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+                <div className="form-group">
+                  <label className="form-label">Nombre d'articles</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="1"
+                    max="10"
+                    value={getSetting('articlesPerInterval', 1)}
+                    onChange={(e) => updateSetting('articlesPerInterval', parseInt(e.target.value) || 1)}
+                    placeholder="1"
+                  />
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: 'var(--spacing-xs)' }}>
+                    Nombre d'articles à générer par intervalle
+                  </p>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label">Intervalle (en jours)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="1"
+                    max="30"
+                    value={getSetting('intervalDays', 3)}
+                    onChange={(e) => updateSetting('intervalDays', parseInt(e.target.value) || 3)}
+                    placeholder="3"
+                  />
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: 'var(--spacing-xs)' }}>
+                    Période en jours pour générer ces articles
+                  </p>
+                </div>
+              </div>
+              
+              <div style={{ padding: 'var(--spacing-md)', background: '#f3f4f6', borderRadius: 'var(--radius-md)', fontSize: '0.875rem', color: '#6b7280' }}>
+                <strong>Exemple :</strong> Si vous configurez <strong>{getSetting('articlesPerInterval', 1)} article(s)</strong> en <strong>{getSetting('intervalDays', 3)} jour(s)</strong>, 
+                le système générera {getSetting('articlesPerInterval', 1)} article(s) tous les {getSetting('intervalDays', 3)} jour(s).
+              </div>
             </div>
           </div>
         )}

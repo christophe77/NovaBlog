@@ -40,7 +40,7 @@ export default function Header({ admin = false }: HeaderProps) {
       <header style={{ borderBottom: '1px solid var(--color-border)', padding: 'var(--spacing-md)' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link to="/admin" style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-            InnovLayer Admin
+            NovaBlog Admin
           </Link>
           <nav style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
             <Link to="/admin">Dashboard</Link>
@@ -72,7 +72,7 @@ export default function Header({ admin = false }: HeaderProps) {
             />
           ) : (
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-              InnovLayer
+              NovaBlog
             </span>
           )}
         </Link>
