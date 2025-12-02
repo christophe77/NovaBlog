@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../utils/api';
 import { applyThemeTokens } from '../../utils/theme';
+import Loading from '../../components/Loading';
 
-type SettingsCategory = 'company' | 'theme' | 'seo' | 'blog' | 'ai' | 'language' | 'social' | 'email';
+type SettingsCategory = 'company' | 'theme' | 'seo' | 'blog' | 'ai' | 'language' | 'social' | 'email' | 'analytics';
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsCategory>('company');
@@ -87,7 +88,7 @@ export default function AdminSettingsPage() {
   };
 
   if (loading) {
-    return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
+    return <Loading fullScreen message="Chargement des paramètres" />;
   }
 
   return (
@@ -95,7 +96,7 @@ export default function AdminSettingsPage() {
       <h1 style={{ fontSize: '2rem', marginBottom: 'var(--spacing-lg)' }}>Paramètres</h1>
 
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', borderBottom: '1px solid var(--color-border)', flexWrap: 'wrap' }}>
-        {(['company', 'theme', 'seo', 'blog', 'ai', 'language', 'social', 'email'] as SettingsCategory[]).map((tab) => (
+        {(['company', 'theme', 'seo', 'blog', 'ai', 'language', 'social', 'email', 'analytics'] as SettingsCategory[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -116,6 +117,7 @@ export default function AdminSettingsPage() {
             {tab === 'language' && 'Langue'}
             {tab === 'social' && 'Réseaux sociaux'}
             {tab === 'email' && 'Email'}
+            {tab === 'analytics' && 'Analytics'}
           </button>
         ))}
       </div>
@@ -676,6 +678,48 @@ export default function AdminSettingsPage() {
                 <option value="en">English</option>
                 <option value="es">Español</option>
               </select>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'analytics' && (
+          <div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: 'var(--spacing-lg)' }}>Analytics et Cookies</h2>
+            <p style={{ marginBottom: 'var(--spacing-lg)', color: '#6b7280', padding: 'var(--spacing-md)', background: '#f3f4f6', borderRadius: 'var(--radius-md)' }}>
+              <strong>🍪 RGPD :</strong> Configurez Google Analytics pour suivre le trafic de votre site. 
+              Un bandeau de consentement aux cookies sera affiché aux visiteurs conformément au RGPD.
+            </p>
+            
+            <div className="form-group">
+              <label className="form-label">Google Analytics ID (GA4)</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="G-XXXXXXXXXX"
+                value={getSetting('googleAnalyticsId', '')}
+                onChange={(e) => updateSetting('googleAnalyticsId', e.target.value)}
+              />
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: 'var(--spacing-xs)' }}>
+                Votre identifiant Google Analytics (format: G-XXXXXXXXXX). 
+                <a 
+                  href="https://support.google.com/analytics/answer/9304153" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--color-primary)', textDecoration: 'underline', marginLeft: '4px' }}
+                >
+                  Comment trouver mon ID ?
+                </a>
+              </p>
+            </div>
+
+            <div style={{ padding: 'var(--spacing-md)', background: '#eff6ff', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe', marginTop: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: 'var(--spacing-xs)', color: '#1e40af' }}>ℹ️ Fonctionnement</h3>
+              <ul style={{ fontSize: '0.875rem', color: '#1e3a8a', margin: 0, paddingLeft: 'var(--spacing-lg)' }}>
+                <li>Un bandeau de consentement aux cookies s'affichera automatiquement aux visiteurs</li>
+                <li>Google Analytics ne sera chargé qu'après consentement explicite</li>
+                <li>Le consentement est sauvegardé dans le navigateur du visiteur</li>
+                <li>Conforme au RGPD et aux réglementations sur les cookies</li>
+              </ul>
             </div>
           </div>
         )}

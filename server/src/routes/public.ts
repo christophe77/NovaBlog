@@ -84,7 +84,7 @@ publicRoutes.get('/settings/public', async (req, res) => {
     const settings = await prisma.setting.findMany({
       where: {
         category: {
-          in: ['company', 'theme', 'seo', 'social'],
+          in: ['company', 'theme', 'seo', 'social', 'analytics'],
         },
       },
     });

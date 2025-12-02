@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../utils/api';
+import Loading from '../components/Loading';
 
 export default function ArticlePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -30,7 +31,7 @@ export default function ArticlePage() {
   }, [article]);
 
   if (loading) {
-    return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
+    return <Loading fullScreen message="Chargement de l'article" />;
   }
 
   if (!article) {

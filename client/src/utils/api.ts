@@ -4,21 +4,29 @@ export async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-    credentials: 'include',
-  });
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      credentials: 'include',
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
-    throw new Error(error.error?.message || 'Request failed');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: 'Request failed' } }));
+      throw new Error(error.error?.message || `Request failed with status ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error: any) {
+    // Re-throw with more context
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(error?.message || 'Network error');
   }
-
-  return response.json();
 }
 
 export const api = {

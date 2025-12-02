@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../utils/api';
+import Loading from '../../components/Loading';
 
 export default function AdminArticlesPage() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -11,14 +12,30 @@ export default function AdminArticlesPage() {
 
   useEffect(() => {
     setLoading(true);
+    
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn('AdminArticlesPage: Loading timeout, setting loading to false');
+      setLoading(false);
+    }, 10000); // 10 second timeout
+
     api
       .getAdminArticles({ status: statusFilter !== 'all' ? statusFilter : undefined, page, limit: 20 })
       .then((data) => {
-        setArticles(data.articles);
-        setPagination(data.pagination);
+        clearTimeout(timeoutId);
+        setArticles(data.articles || []);
+        setPagination(data.pagination || null);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((error) => {
+        console.error('AdminArticlesPage: Error loading articles:', error);
+        clearTimeout(timeoutId);
+        setArticles([]);
+        setPagination(null);
+        setLoading(false);
+      });
+
+    return () => clearTimeout(timeoutId);
   }, [statusFilter, page]);
 
   const handleDelete = async (id: string) => {
@@ -44,7 +61,7 @@ export default function AdminArticlesPage() {
   };
 
   if (loading) {
-    return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
+    return <Loading fullScreen message="Chargement des articles" />;
   }
 
   return (

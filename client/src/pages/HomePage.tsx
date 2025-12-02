@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../utils/api';
+import Loading from '../components/Loading';
 
 interface CarouselSlide {
   id: string;
@@ -48,18 +49,35 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      console.warn('HomePage: Loading timeout, using default values');
+      setLoading(false);
+    }, 10000); // 10 second timeout
+
     Promise.all([
-      api.getPublicSettings(),
-      api.getHomepageConfig(),
-      api.getArticles({ limit: 3 }),
+      api.getPublicSettings().catch(() => ({ settings: {} })),
+      api.getHomepageConfig().catch(() => ({ config: null })),
+      api.getArticles({ limit: 3 }).catch(() => ({ articles: [] })),
     ])
       .then(([settingsRes, configRes, articlesRes]) => {
-        setSettings(settingsRes.settings);
-        setHomepageConfig(configRes.config);
-        setArticles(articlesRes.articles);
+        clearTimeout(timeoutId);
+        setSettings(settingsRes.settings || {});
+        setHomepageConfig(configRes.config || null);
+        setArticles(articlesRes.articles || []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((error) => {
+        console.error('HomePage: Error loading data:', error);
+        clearTimeout(timeoutId);
+        // Set default values on error
+        setSettings({});
+        setHomepageConfig(null);
+        setArticles([]);
+        setLoading(false);
+      });
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Update SEO meta tags
@@ -97,7 +115,7 @@ export default function HomePage() {
   }, [homepageConfig]);
 
   if (loading) {
-    return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
+    return <Loading fullScreen message="Chargement de la page" />;
   }
 
   const companyName = settings['company.name'] || 'NovaBlog';

@@ -41,5 +41,8 @@ export const defaultSettings = {
   language: {
     default: 'fr',
   },
+  analytics: {
+    googleAnalyticsId: '',
+  },
 };
 

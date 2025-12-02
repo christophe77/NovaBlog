@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
+import Loading from '../components/Loading';
 
 export default function SetupPage() {
   const navigate = useNavigate();
@@ -93,7 +94,7 @@ export default function SetupPage() {
   };
 
   if (loading) {
-    return <div style={{ padding: 'var(--spacing-2xl)', textAlign: 'center' }}>Loading...</div>;
+    return <Loading fullScreen message="Vérification de la configuration" />;
   }
 
   return (

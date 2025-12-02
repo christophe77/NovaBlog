@@ -570,6 +570,7 @@ adminRoutes.get('/homepage/config', async (req, res) => {
     });
 
     if (!setting) {
+      console.log('Admin: No homepage config found, returning defaults');
       // Return default config
       return res.json({
         config: {
@@ -600,8 +601,10 @@ adminRoutes.get('/homepage/config', async (req, res) => {
 
     try {
       const config = JSON.parse(setting.value);
+      console.log('Admin: Homepage config loaded from DB:', JSON.stringify(config, null, 2));
       res.json({ config });
-    } catch {
+    } catch (parseError) {
+      console.error('Admin: Error parsing homepage config:', parseError);
       res.json({
         config: {
           heroCarousel: {

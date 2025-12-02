@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 import RichTextEditor from '../../components/RichTextEditor';
+import Loading from '../../components/Loading';
 
 export default function AdminArticleEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -124,7 +125,7 @@ export default function AdminArticleEditPage() {
   };
 
   if (loading) {
-    return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
+    return <Loading fullScreen message="Chargement de l'article" />;
   }
 
   return (

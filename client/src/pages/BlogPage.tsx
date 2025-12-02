@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../utils/api';
+import Loading from '../components/Loading';
 
 export default function BlogPage() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -21,7 +22,7 @@ export default function BlogPage() {
   }, [page]);
 
   if (loading) {
-    return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
+    return <Loading fullScreen message="Chargement du blog" />;
   }
 
   return (

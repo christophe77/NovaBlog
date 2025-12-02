@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../utils/api';
 import RichTextEditor from '../../components/RichTextEditor';
+import Loading from '../../components/Loading';
 
 interface CarouselSlide {
   id: string;
@@ -75,22 +76,115 @@ export default function AdminHomepagePage() {
 
   const loadConfig = async () => {
     try {
-      const data = await api.apiRequest<{ config: HomepageConfig }>('/admin/homepage/config');
-      setConfig(data.config || {
+      console.log('Loading homepage config...');
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 10000);
+      });
+
+      const data = await Promise.race([
+        api.apiRequest<{ config: HomepageConfig }>('/admin/homepage/config'),
+        timeoutPromise,
+      ]) as { config: HomepageConfig };
+
+      console.log('Homepage config loaded:', data);
+      
+      // Merge loaded config with defaults to ensure all fields are present
+      const loadedConfig = data.config || {};
+      
+      console.log('Admin: Raw loaded config:', JSON.stringify(loadedConfig, null, 2));
+      
+      // Ensure sections is always an array
+      // Don't filter by id - sections might not have id if they were created differently
+      const sections = Array.isArray(loadedConfig.sections) 
+        ? loadedConfig.sections.map((s, index) => {
+            // Ensure each section has an id
+            if (!s || typeof s !== 'object') return null;
+            return {
+              id: s.id || `section-${index}-${Date.now()}`,
+              title: s.title || '',
+              content: s.content || '',
+            };
+          }).filter(s => s !== null)
+        : [];
+      
+      // Ensure heroCarousel.slides is always an array
+      const heroCarousel = loadedConfig.heroCarousel || {};
+      const slides = Array.isArray(heroCarousel.slides)
+        ? heroCarousel.slides.map((s, index) => {
+            // Ensure each slide has an id
+            if (!s || typeof s !== 'object') return null;
+            return {
+              id: s.id || `slide-${index}-${Date.now()}`,
+              image: s.image || '',
+              alt: s.alt || '',
+            };
+          }).filter(s => s !== null)
+        : [];
+      
+      const finalConfig = {
+        heroCarousel: {
+          enabled: heroCarousel.enabled === true,
+          slides: slides,
+        },
+        sectionsTitle: loadedConfig.sectionsTitle || '',
+        sections: sections,
+        contact: {
+          enabled: false,
+          title: 'Contactez-nous',
+          description: '',
+          emailLabel: 'Email',
+          nameLabel: 'Nom',
+          subjectLabel: 'Sujet',
+          messageLabel: 'Message',
+          submitLabel: 'Envoyer',
+          successMessage: 'Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.',
+          ...(loadedConfig.contact || {}),
+        },
+        seo: {
+          title: '',
+          description: '',
+          ...(loadedConfig.seo || {}),
+        },
+      };
+      
+      console.log('Admin: Config merged and set:', {
+        sectionsCount: sections.length,
+        slidesCount: slides.length,
+        sectionsTitle: finalConfig.sectionsTitle,
+        sections: sections,
+        fullConfig: finalConfig,
+      });
+      
+      setConfig(finalConfig);
+      console.log('Config set, setting loading to false');
+      setLoading(false);
+    } catch (error: any) {
+      console.error('Error loading homepage config:', error);
+      // Set default config even on error
+      setConfig({
         heroCarousel: {
           enabled: false,
           slides: [],
         },
         sectionsTitle: '',
         sections: [],
+        contact: {
+          enabled: false,
+          title: 'Contactez-nous',
+          description: '',
+          emailLabel: 'Email',
+          nameLabel: 'Nom',
+          subjectLabel: 'Sujet',
+          messageLabel: 'Message',
+          submitLabel: 'Envoyer',
+          successMessage: 'Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.',
+        },
         seo: {
           title: '',
           description: '',
         },
       });
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading homepage config:', error);
       setLoading(false);
     }
   };
@@ -256,7 +350,7 @@ export default function AdminHomepagePage() {
   };
 
   if (loading) {
-    return <div className="container" style={{ padding: 'var(--spacing-2xl) 0' }}>Loading...</div>;
+    return <Loading fullScreen message="Chargement de la configuration" />;
   }
 
   return (
